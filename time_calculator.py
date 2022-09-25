@@ -1,21 +1,13 @@
-weekdays = {
-    1: 'monday',
-    2: 'tuesday',
-    3: 'wednesday',
-    4: 'thursday',
-    5: 'friday',
-    6: 'saturday',
-    7: 'sunday'
-}
-
+weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 class TimeObject:
 
-    def __init__(self, time):
+    def __init__(self, time, start_weekday):
         self.time = time.replace(' ', ':')
         self.hour = 0 if int(self.time.split(':')[0]) == 12 else int(self.time.split(':')[0])
         self.minute = int(self.time.split(':')[1])
         self.period = self.time.split(':')[2]
         self.starting_day = 0
+        self.start_weekday = -1 if start_weekday == 'none' else weekdays.index(start_weekday.lower().capitalize())
         if self.period == 'PM':
             self.hour += 12
 
@@ -39,21 +31,34 @@ class TimeObject:
         if self.hour == 0:
             return '12'
         elif self.hour > 12:
-            return str(f'{self.hour - 12:01}')
+            return str(self.hour - 12)
         else:
-            return str(f'{self.hour:01}')
+            return str(self.hour)
+
+    def mn_str(self):
+        return str(self.minute)
 
     def __repr__(self):
-        return f'Final time is {self.hour_str()}:{self.minute} {self.period} {self.starting_day} days later'
+        hour = self.hour_str()
+        minute = self.mn_str().zfill(2)
+        period = 'AM' if self.hour < 12 else 'PM'
+        if self.starting_day:
+            day = f'(next day)' if self.starting_day < 2 else f'({self.starting_day} days later)'
+        else: day = False
+        if self.start_weekday > -1:
+            weekday = weekdays[(self.start_weekday + self.starting_day) % 7]
+        else: weekday = False
 
-def add_time(start, duration, day=None):
+        return f'{hour}:{minute} {period}' + (f', {weekday}' if weekday else '') + (f' {day}' if day else '')
 
-    begin = TimeObject(start)
-    print(begin)
+def add_time(start, duration, day="none"):
+
+    begin = TimeObject(start, day)
     begin.add_duration(duration)
+    ret = str(begin)
+    print(ret)
 
-    print(begin)
-    return ("4:32")
+    return (ret)
 
-add_time("11:43 PM", "24:20", "tueSday")
+add_time("3:30 PM", "2:12", "Monday")
 # Should be: 12:03 AM, Thursday (2 days later)
